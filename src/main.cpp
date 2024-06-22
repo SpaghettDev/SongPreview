@@ -14,7 +14,6 @@ class $modify(CustomSongWidget)
 		bool m_is_playing = false;
 
 		EventListener<utils::web::WebTask> m_length_listener;
-		EventListener<utils::web::WebTask> m_ng_length_listener;
 		std::uint32_t m_song_length = -1;
 
 		EventListener<utils::web::WebTask> m_song_downloader_listener;
@@ -71,7 +70,7 @@ class $modify(CustomSongWidget)
 				CCSpriteFrameCache::get()->spriteFrameByName("GJ_stopMusicBtn_001.png")
 			);
 
-			fetchSongLength();
+			fetchSong();
 
 
 		}
@@ -86,53 +85,27 @@ class $modify(CustomSongWidget)
 		}
 	}
 
-	void fetchSongLength()
+	void fetchSong()
 	{
 		m_fields->m_length_listener.bind([&](web::WebTask::Event* e) {
 			if (web::WebResponse* res = e->getValue())
 			{
-				if (this->m_customSongID <= 10000000)
-				{
-					m_fields->m_ng_length_listener.bind([&](web::WebTask::Event* e) {
-						if (web::WebResponse* res = e->getValue())
-						{
-							m_fields->m_song_length = std::stoi(res->header("content-length").value_or("0"));
-							if (m_fields->m_song_length == 0) return;
+				if (!res->ok() || !res->header("content-length").has_value()) return;
 
-							log::debug("normal song length is {}", m_fields->m_song_length);
-						}
-					});
-
-					for (const auto& e : res->headers())
-						log::debug("{}", e);
-
-					if (res->header("location").has_value())
-					{
-						auto req = web::WebRequest()
-							.send("HEAD", res->header("location").value());
-
-						m_fields->m_ng_length_listener.setFilter(req);
-					}
-				}
-				else
-				{
-					m_fields->m_song_length = std::stoi(res->header("content-length").value_or("0"));
-					for (const auto& e : res->headers())
-						log::debug("{}", e);
-					if (m_fields->m_song_length == 0) return;
-
-					log::debug("ng song length is {}", m_fields->m_song_length);
-				}
+				m_fields->m_song_length = std::stoi(res->header("content-length").value());
 			}
 		});
 
-		std::string_view url;
+		std::string url;
 		if (this->m_customSongID <= 10000000)
-			url = fmt::format("www.newgrounds.com/audio/download/{}", this->m_customSongID);
+			url = fmt::format("https://www.newgrounds.com/audio/download/{}", this->m_customSongID);
 		else
 			url = fmt::format("https://geometrydashfiles.b-cdn.net/music/{}.ogg", this->m_customSongID);
 
 		auto req = web::WebRequest()
+			.followRequest(true)
+			.transferBody(false)
+			.version(web::HttpVersion::VERSION_2_0)
 			.send("HEAD", url);
 
 		m_fields->m_length_listener.setFilter(req);
