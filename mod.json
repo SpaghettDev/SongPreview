@@ -1,13 +1,23 @@
 {
-	"geode": "3.0.0-beta.5",
+	"geode": "3.0.0",
 	"gd": {
 		"win": "2.206",
 		"android": "2.206",
 		"mac": "2.206"
 	},
-	"id": "spaghettdev.songplayback",
-	"name": "SongPlayback",
+	"id": "spaghettdev.songpreview",
+	"name": "SongPreview",
 	"version": "v1.0.0",
 	"developer": "SpaghettDev",
-	"description": ""
+	"description": "Allows you to preview a song by playing a small snippet without fully downloading it.",
+	"settings": {
+		"preview-time": {
+			"name": "Number of seconds to get",
+			"type": "int",
+			"default": 5,
+			"description": "The number of seconds to download.",
+			"min": 1,
+			"max": 20
+		}
+	}
 }

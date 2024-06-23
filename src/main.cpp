@@ -1,3 +1,6 @@
+#include <fstream>
+#include <filesystem>
+
 #include <Geode/modify/CustomSongWidget.hpp>
 #include <Geode/modify/MusicDownloadManager.hpp>
 #include <Geode/binding/FMODAudioEngine.hpp>
@@ -12,9 +15,7 @@ class $modify(CustomSongWidget)
 	struct Fields
 	{
 		bool m_is_playing = false;
-
-		EventListener<utils::web::WebTask> m_length_listener;
-		std::uint32_t m_song_length = -1;
+		std::string m_url;
 
 		EventListener<utils::web::WebTask> m_song_downloader_listener;
 	};
@@ -31,6 +32,11 @@ class $modify(CustomSongWidget)
 			this->m_playbackBtn->setPosition(this->m_selectSongBtn->getPosition());
 			this->m_playbackBtn->setVisible(true);
 		}
+
+		if (this->m_customSongID <= 10000000)
+			m_fields->m_url = fmt::format("https://www.newgrounds.com/audio/download/{}", this->m_customSongID);
+		else
+			m_fields->m_url = fmt::format("https://geometrydashfiles.b-cdn.net/music/{}.ogg", this->m_customSongID);
 
 		return true;
 	}
@@ -50,20 +56,50 @@ class $modify(CustomSongWidget)
 
 	void onPlayback(CCObject* sender)
 	{
+		m_fields->m_is_playing = !m_fields->m_is_playing;
+
 		auto* MDM = MusicDownloadManager::sharedState();
 
-		if (this->m_customSongID <= 10000000 && MDM->isSongDownloaded(this->m_customSongID))
-			CustomSongWidget::onPlayback(sender);
+		if (this->m_customSongID <= 10000000)
+		{
+			if (MDM->isSongDownloaded(this->m_customSongID))
+			{
+				log::debug("song isnt music lib and is downloaded");
+				CustomSongWidget::onPlayback(sender);
+			}
+			else
+			{
+				log::debug("song isnt music lib and is not downloaded");
+				onPlaybackNotDownloaded();
+			}
+		}
 		else
-			onPlaybackNotDownloaded();
+		{
+			// idk of any other way
+			if (std::filesystem::exists(MDM->pathForSong(this->m_customSongID)))
+			{
+				log::debug("song is music lib and is downloaded");
+				CustomSongWidget::onPlayback(sender);
+			}
+			else
+			{
+				log::debug("song is music lib and is not downloaded");
+				onPlaybackNotDownloaded();
+			}
+		}
 
 		this->m_playbackBtn->setVisible(true);
 	}
 
+	void updatePlaybackBtn()
+	{
+		CustomSongWidget::updatePlaybackBtn();
+
+		log::debug("updated playback btn");
+	}
+
 	void onPlaybackNotDownloaded()
 	{
-		m_fields->m_is_playing = !m_fields->m_is_playing;
-
 		if (m_fields->m_is_playing)
 		{
 			static_cast<CCSprite*>(this->m_playbackBtn->getNormalImage())->setDisplayFrame(
@@ -71,8 +107,6 @@ class $modify(CustomSongWidget)
 			);
 
 			fetchSong();
-
-
 		}
 		else
 		{
@@ -87,27 +121,45 @@ class $modify(CustomSongWidget)
 
 	void fetchSong()
 	{
-		m_fields->m_length_listener.bind([&](web::WebTask::Event* e) {
+		m_fields->m_song_downloader_listener.bind([&](web::WebTask::Event* e) {
 			if (web::WebResponse* res = e->getValue())
 			{
-				if (!res->ok() || !res->header("content-length").has_value()) return;
+				if (!res->ok()) return;
 
-				m_fields->m_song_length = std::stoi(res->header("content-length").value());
+				auto songPath = Mod::get()->getSaveDir() / "songs" / fmt::format(
+					"{}.{}", this->m_customSongID, this->m_customSongID <= 10000000 ? "mp3" : "ogg"
+				);
+
+				std::ofstream{ songPath };
+				res->into(songPath);
+
+				playSong(songPath);
 			}
 		});
 
-		std::string url;
-		if (this->m_customSongID <= 10000000)
-			url = fmt::format("https://www.newgrounds.com/audio/download/{}", this->m_customSongID);
-		else
-			url = fmt::format("https://geometrydashfiles.b-cdn.net/music/{}.ogg", this->m_customSongID);
-
 		auto req = web::WebRequest()
-			.followRequest(true)
-			.transferBody(false)
-			.version(web::HttpVersion::VERSION_2_0)
-			.send("HEAD", url);
+			.downloadRange({ 0, getNumberOfBytes() - 1 })
+			.get(m_fields->m_url);
 
-		m_fields->m_length_listener.setFilter(req);
+		m_fields->m_song_downloader_listener.setFilter(req);
+	}
+
+	void playSong(const std::filesystem::path& path)
+	{
+		FMODAudioEngine::sharedEngine()->playMusic(path.string(), false, 0.f, 0);
+	}
+
+	std::uint64_t getNumberOfBytes()
+	{
+		const int bitRate = 128 * 1024 / 8; // assume 128 kbps
+		return Mod::get()->getSavedValue<std::int64_t>("preview-time") * bitRate;
 	}
 };
+
+$execute
+{
+	std::filesystem::create_directory(Mod::get()->getSaveDir() / "songs");
+
+	for (const auto& entry : std::filesystem::directory_iterator(Mod::get()->getSaveDir() / "songs")) 
+        std::filesystem::remove_all(entry.path());
+}
