@@ -26,6 +26,6 @@ namespace SP
 		if (id <= 10000000)
 			return MDM->isSongDownloaded(id);
 		else
-			return std::filesystem::exists(MDM->pathForSong(id));
+			return std::filesystem::exists(MDM->pathForSong(id).c_str());
 	}
 }
