@@ -82,7 +82,7 @@ struct CustomSongWidgetPlus : Modify<CustomSongWidgetPlus, CustomSongWidget>
 
 		// this is getting a bit too crowded...
 		if (this->m_songs.size() != 1 || this->m_sfx.size() != 0)
-			this->m_infoBtn->setPositionX(-183.f);
+			this->m_infoBtn->setPositionX(this->m_playbackBtn->getPositionX() - 26.f);
 
 		this->m_playbackBtn->setVisible(true);
 	}
