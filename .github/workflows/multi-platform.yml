@@ -35,8 +35,8 @@ jobs:
       - name: Build the mod
         uses: geode-sdk/build-geode-mod@main
         with:
-          bindings: SpaghettDev/customsongwidget
-          bindings-ref: main
+          bindings: SpaghettDev/binding
+          bindings-ref: customsongwidget
           sdk: nightly
           combine: true
           target: ${{ matrix.config.target }}
