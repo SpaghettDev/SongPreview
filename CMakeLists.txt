@@ -6,10 +6,13 @@ set(CMAKE_CXX_VISIBILITY_PRESET hidden)
 
 project(SongPlayback VERSION 1.0.0)
 
-add_library(${PROJECT_NAME} SHARED
-    src/main.cpp
-    # Add any extra C++ source files here
+set(SRC_DIR "${PROJECT_SOURCE_DIR}/src")
+
+file(GLOB_RECURSE SRC_MAIN
+    "${SRC_DIR}/**.hpp"
+    "${SRC_DIR}/**.cpp"
 )
+add_library(${PROJECT_NAME} MODULE "${SRC_MAIN}")
 
 if (NOT DEFINED ENV{GEODE_SDK})
     message(FATAL_ERROR "Unable to find Geode SDK! Please define GEODE_SDK environment variable to point to Geode")
