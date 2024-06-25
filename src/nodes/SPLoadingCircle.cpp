@@ -34,7 +34,7 @@ void SPLoadingCircle::show()
 
 	this->runAction(fadeInAction);
 
-    auto* rotateAction = cocos2d::CCRepeatForever::create(
+	auto* rotateAction = cocos2d::CCRepeatForever::create(
 		cocos2d::CCRotateBy::create(1.f, 360.f)
 	);
 	rotateAction->setTag(ACTION_TAG::ROTATE);
@@ -44,8 +44,8 @@ void SPLoadingCircle::show()
 
 void SPLoadingCircle::hide()
 {
-    this->stopActionByTag(ACTION_TAG::ROTATE);
-    this->stopActionByTag(ACTION_TAG::FADE_IN);
+	this->stopActionByTag(ACTION_TAG::ROTATE);
+	this->stopActionByTag(ACTION_TAG::FADE_IN);
 
 	auto* fadeOutAction = cocos2d::CCFadeTo::create(.4f, 0);
 	fadeOutAction->setTag(ACTION_TAG::FADE_OUT);
