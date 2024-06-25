@@ -8,4 +8,5 @@ Features:
     - idk bruh
 
 The snippet is fetched and downloaded on button click, then it is cached until the next game launch, where it is deleted.
+If the song isn't able to be downloaded, or FMOD (the game's audio engine) isn't able to play the snippet, the preview button will become gray and unlickable.
 
