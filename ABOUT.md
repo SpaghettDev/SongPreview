@@ -1,6 +1,6 @@
 # SongPreview
 
-This mod allows you to play a snippet ranging from 5 to 20 seconds (changed in the mod's settings) when licking the preview button on a song widget.
+This mod allows you to play a snippet ranging from 5 to 20 seconds (changed in the mod's settings) when clicking the preview button on a song widget.
 
 Features:
     - Show preview button on all song widgets (even the ones in the level selection screen)
