@@ -23,6 +23,7 @@ git clone https://github.com/SpaghettDev/SongPreview
 cd SongPreview
 mkdir build
 cd build
-cmake ..                                                                    ```
+cmake ..
+```
 Then open the generated solution in Visual Studio.
 

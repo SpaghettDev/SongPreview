@@ -9,6 +9,15 @@
 	"version": "v1.0.0",
 	"developer": "SpaghettDev",
 	"description": "Allows you to preview a song by playing a small snippet without fully downloading it.",
+	"repository": "https://github.com/SpaghettDev/SongPreview",
+	"links": {
+		"community": "https://discord.gg/3bShQb6Jz3",
+		"source": "https://github.com/SpaghettDev/SongPreview"
+	},
+	"issues": {
+		"info": "Report any bugs/suggestions here.",
+		"url": "https://github.com/SpaghettDev/SongPreview/issues"
+	},
 	"settings": {
 		"preview-time": {
 			"name": "Number of seconds to get",
