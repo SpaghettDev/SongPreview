@@ -210,7 +210,7 @@ struct CustomSongWidgetPlus : Modify<CustomSongWidgetPlus, CustomSongWidget>
 		});
 
 		auto req = web::WebRequest()
-			.downloadRange({ 0, SP::secondsToBytes(Mod::get()->getSettingValue<std::uint64_t>("preview-time")) - 1 })
+			.downloadRange({ 0, SP::secondsToBytes(Mod::get()->getSettingValue<std::int64_t>("preview-time")) - 1 })
 			.get(m_fields->m_url);
 
 		m_fields->m_song_downloader_listener.setFilter(req);
