@@ -47,7 +47,6 @@ struct CustomSongWidgetPlus : Modify<CustomSongWidgetPlus, CustomSongWidget>
 			return false;
 
 		// updateWithMultiAssets is not called when a song widget is made for CustomSongCell/CustomMusicCell
-		// TODO: fix this shit breaking in MusicBrowser
 		if (isMusicLibrary && this->m_showDownloadBtn)
 		{
 			this->m_playbackBtn->setPosition(this->m_selectSongBtn->getPosition());
@@ -93,6 +92,7 @@ struct CustomSongWidgetPlus : Modify<CustomSongWidgetPlus, CustomSongWidget>
 
 		g_playingSong = m_fields->m_is_playing ? this->m_customSongID : -1;
 
+		// TODO: why are rob songs breaking ffs
 		if (this->m_isRobtopSong)
 		{
 			CustomSongWidget::onPlayback(sender);
@@ -210,7 +210,7 @@ struct CustomSongWidgetPlus : Modify<CustomSongWidgetPlus, CustomSongWidget>
 		});
 
 		auto req = web::WebRequest()
-			.downloadRange({ 0, SP::secondsToBytes(Mod::get()->getSavedValue<std::int64_t>("preview-time")) - 1 })
+			.downloadRange({ 0, SP::secondsToBytes(Mod::get()->getSavedValue<std::uint64_t>("preview-time")) - 1 })
 			.get(m_fields->m_url);
 
 		m_fields->m_song_downloader_listener.setFilter(req);
@@ -286,10 +286,6 @@ struct CustomMusicCellPlus : Modify<CustomMusicCellPlus, CustomMusicCell>
 
 $execute
 {
-	// wtf
-	if (Mod::get()->getSavedValue<std::int64_t>("preview-time") == 0)
-		Mod::get()->setSavedValue("preview-time", 5);
-
 	std::filesystem::create_directory(SnippetsDir);
 
 	for (const auto& entry : std::filesystem::directory_iterator(SnippetsDir))
