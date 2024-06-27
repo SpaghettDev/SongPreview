@@ -3,10 +3,13 @@
 #include <Geode/modify/CustomSongWidget.hpp>
 #include <Geode/modify/CustomSongCell.hpp>
 #include <Geode/modify/CustomMusicCell.hpp>
-#include <Geode/modify/MusicDownloadManager.hpp>
+
+#include <Geode/binding/MusicDownloadManager.hpp>
 #include <Geode/binding/FMODAudioEngine.hpp>
 #include <Geode/binding/LoadingCircle.hpp>
 #include <Geode/binding/GameManager.hpp>
+
+#include "types/SongState.hpp"
 
 #include "nodes/SPLoadingCircle.hpp"
 
@@ -20,13 +23,6 @@ using namespace geode::prelude;
 const std::filesystem::path SnippetsDir = Mod::get()->getSaveDir() / "snippets";
 std::vector<int> g_downloadedSnippets;
 std::uint32_t g_playingSong = -1;
-
-enum class SongState
-{
-	NONE,
-	DOWNLOADED,
-	DOWNLOAD_FAILED
-};
 
 struct CustomSongWidgetPlus : Modify<CustomSongWidgetPlus, CustomSongWidget>
 {
