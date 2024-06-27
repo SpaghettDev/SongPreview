@@ -7,7 +7,7 @@
 	},
 	"id": "spaghettdev.songpreview",
 	"name": "SongPreview",
-	"version": "v1.0.0",
+	"version": "v1.1.0",
 	"developer": "SpaghettDev",
 	"description": "Allows you to preview a song by playing a small snippet without fully downloading it.",
 	"tags": [
