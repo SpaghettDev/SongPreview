@@ -202,8 +202,6 @@ struct CustomSongWidgetPlus : Modify<CustomSongWidgetPlus, CustomSongWidget>
 				m_fields->m_loading_circle->hide();
 
 				g_downloadedSnippets.emplace_back(this->m_customSongID);
-
-				sizeof(GJBaseGameLayer);
 			}
 		});
 
