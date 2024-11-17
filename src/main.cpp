@@ -141,7 +141,7 @@ struct CustomSongWidgetPlus : Modify<CustomSongWidgetPlus, CustomSongWidget>
 
 	void onPlaybackNotDownloaded()
 	{
-		FMODAudioEngine::sharedEngine()->stopAllMusic();
+		FMODAudioEngine::sharedEngine()->stopAllMusic(true);
 
 		if (m_fields->m_is_playing)
 		{
@@ -206,6 +206,7 @@ struct CustomSongWidgetPlus : Modify<CustomSongWidgetPlus, CustomSongWidget>
 		});
 
 		auto req = web::WebRequest()
+			// @geode-ignore(unknown-setting)
 			.downloadRange({ 0, SP::secondsToBytes(Mod::get()->getSettingValue<std::int64_t>("preview-time")) - 1 })
 			.get(m_fields->m_url);
 
@@ -252,7 +253,7 @@ struct CustomSongCellPlus : Modify<CustomSongCellPlus, CustomSongCell>
 	{
 		CustomSongCell::loadFromObject(obj);
 
-		auto* songWidget = getChildOfType<CustomSongWidget>(this->m_mainLayer, 0);
+		auto* songWidget = this->m_mainLayer->getChildByType<CustomSongWidget>(0);
 
 		// reset preview button position in CustomSongCell if we finish downloading the song
 		if (SP::isSongDownloaded(songWidget->m_customSongID))
@@ -269,7 +270,7 @@ struct CustomMusicCellPlus : Modify<CustomMusicCellPlus, CustomMusicCell>
 	{
 		CustomMusicCell::loadFromObject(obj);
 
-		auto* songWidget = getChildOfType<CustomSongWidget>(this->m_mainLayer, 0);
+		auto* songWidget = this->m_mainLayer->getChildByType<CustomSongWidget>(0);
 
 		// reset preview button position in CustomMusicCell if we finish downloading the song
 		if (SP::isSongDownloaded(songWidget->m_customSongID))
