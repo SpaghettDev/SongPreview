@@ -7,15 +7,17 @@
 
 namespace SP
 {
+	constexpr std::uint16_t NG_BITRATE = 128 * 1000 / 8;
+	constexpr std::uint16_t GDCS_BITRATE = 320 * 1000 / 8;
+
 	inline void playSong(const std::filesystem::path& path)
 	{
 		FMODAudioEngine::sharedEngine()->playMusic(path.string(), false, 0.f, 0);
 	}
 
-	inline std::uint64_t secondsToBytes(std::uint64_t seconds)
+	inline std::uint64_t secondsToBytes(std::uint64_t seconds, bool is320kbps)
 	{
-		const int bitRate = 128 * 1024 / 8; // assume 128 kbps
-		return seconds * bitRate;
+		return seconds * (is320kbps ? GDCS_BITRATE : NG_BITRATE);
 	}
 
 	inline bool isSongDownloaded(std::uint32_t id)

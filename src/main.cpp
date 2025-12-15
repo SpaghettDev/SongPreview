@@ -29,6 +29,7 @@ struct CustomSongWidgetPlus : Modify<CustomSongWidgetPlus, CustomSongWidget>
 	struct Fields
 	{
 		bool m_is_playing = false;
+		bool m_is_320kbps = false;
 		SongState m_song_download_state = SongState::NONE;
 		std::string m_url;
 
@@ -49,16 +50,38 @@ struct CustomSongWidgetPlus : Modify<CustomSongWidgetPlus, CustomSongWidget>
 			this->m_playbackBtn->setVisible(true);
 		}
 
-		if (this->m_customSongID <= 10000000)
+		if (songInfo && !songInfo->m_songUrl.empty())
+		{
+			m_fields->m_url = songInfo->m_songUrl;
+			m_fields->m_is_320kbps = true;
+		}
+		else if (this->m_customSongID <= 10000000)
+		{
 			m_fields->m_url = fmt::format("https://www.newgrounds.com/audio/download/{}", this->m_customSongID);
+			m_fields->m_is_320kbps = false;
+		}
 		else
-			m_fields->m_url = fmt::format("https://geometrydashfiles.b-cdn.net/music/{}.ogg", this->m_customSongID);
+		{
+			m_fields->m_url = fmt::format(
+				"https://geometrydashfiles.b-cdn.net{}",
+				MusicDownloadManager::sharedState()->generateCustomContentURL(
+					fmt::format("/music/{}.ogg", this->m_customSongID)
+				)
+			);
+			m_fields->m_is_320kbps = true;
+		}
 
 		m_fields->m_loading_circle = SPLoadingCircle::create();
 		m_fields->m_loading_circle->setScale(.5f);
 		m_fields->m_loading_circle->setPosition(this->m_playbackBtn->getPosition());
 		m_fields->m_loading_circle->setID("preview-loading-circle"_spr);
 		this->m_buttonMenu->addChild(m_fields->m_loading_circle);
+
+		if (g_playingSong == this->m_customSongID)
+		{
+			m_fields->m_is_playing =  true;
+			this->updatePlaybackBtn();
+		}
 
 		return true;
 	}
@@ -128,7 +151,6 @@ struct CustomSongWidgetPlus : Modify<CustomSongWidgetPlus, CustomSongWidget>
 		if (this->m_customSongID != g_playingSong)
 			m_fields->m_is_playing = false;
 
-		// DOWNLOAD_FAILED usually means newgrounds sent back 400, TODO: fetch getGJSongInfo.php in that case
 		if (
 			m_fields->m_song_download_state == SongState::DOWNLOAD_FAILED ||
 			m_fields->m_song_download_state == SongState::DOWNLOADED && FMOD->m_lastResult != FMOD_RESULT::FMOD_OK
@@ -191,7 +213,7 @@ struct CustomSongWidgetPlus : Modify<CustomSongWidgetPlus, CustomSongWidget>
 
 				const auto& songPath = getSongFilePath();
 
-				std::ofstream{ songPath };
+				std::ofstream{ songPath }; // NOLINT(bugprone-unused-raii)
 				auto resp = res->into(songPath);
 
 				m_fields->m_song_download_state = SongState::DOWNLOADED;
@@ -205,12 +227,26 @@ struct CustomSongWidgetPlus : Modify<CustomSongWidgetPlus, CustomSongWidget>
 			}
 		});
 
+		// @geode-ignore(unknown-setting)
+		auto previewTime = Mod::get()->getSettingValue<std::int64_t>("preview-time");
 		auto req = web::WebRequest()
-			// @geode-ignore(unknown-setting)
-			.downloadRange({ 0, SP::secondsToBytes(Mod::get()->getSettingValue<std::int64_t>("preview-time")) - 1 })
-			.get(m_fields->m_url);
+			.downloadRange({
+				0,
+				getHeaderSize() + SP::secondsToBytes(previewTime, m_fields->m_is_320kbps) - 1
+			})
+			.followRedirects(true);
 
-		m_fields->m_song_downloader_listener.setFilter(req);
+		if (this->m_customSongID <= 10000000)
+		{
+			req
+				.userAgent("Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:148.0) Gecko/20100101 Firefox/148.0")
+				.header("Host", "corsproxy.io")
+				.header("Accept", "*/*");
+			// saves us from having to request getGJSongInfo.php to get the NG cdn url
+			m_fields->m_url = fmt::format("http://corsproxy.io/?url={}", m_fields->m_url);
+		}
+
+		m_fields->m_song_downloader_listener.setFilter(req.get(m_fields->m_url));
 	}
 
 	/**
@@ -244,6 +280,17 @@ struct CustomSongWidgetPlus : Modify<CustomSongWidgetPlus, CustomSongWidget>
 					this->m_customSongID <= 10000000 ? "mp3" : "ogg"
 				)
 			).string();
+	}
+
+	/**
+	 * @brief Gets the size of the audio file header in bytes.
+	 * This is not accurate, as MP3 headers can vary in size, but it's close enough
+	 * 
+	 * @return std::uint64_t
+	 */
+	constexpr std::uint64_t getHeaderSize()
+	{
+		return this->m_customSongID <= 10000000 ? 0x1000 : 0xA0A;
 	}
 };
 

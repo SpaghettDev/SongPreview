@@ -3,6 +3,17 @@
 All notable changes to this project will be documented in this file.
 The format is based on [Keep a Changelog](http://keepachangelog.com/) and this project adheres to [Semantic Versioning](http://semver.org/).
 
+## [1.2.0] - 2025-12-14
+
+### Changed
+
+- A guesstimate of the header size is added when fetching the snippet, which should result in snippets being actually closer to the cutoff range
+
+### Fixed
+
+- Most songs unable to be previewed
+- Play button getting stuck in a state
+
 ## [1.2.0] - 2024-11-17
 
 ### Changed
